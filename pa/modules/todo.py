@@ -1,5 +1,5 @@
 '''\
-aardvark todo - Command line TODO management with Todoist sync
+pa todo - Command line TODO management with Todoist sync
 
 Create, manage and sync TODOs from the command line. Running any of the
 commands for the first time that day will migrate outstanding TODOs from the
@@ -9,9 +9,9 @@ The default action is to add the remaining command line arguments as a new todo
 in todays TODO file.
 
 Usage:
-  advk todo <todo>...
-  advk todo [options]
-  advk todo (-h | --help)
+  pa todo <todo>...
+  pa todo [options]
+  pa todo (-h | --help)
 
 Options:
   -l, --list    List today's outstanding TODOs
@@ -28,9 +28,10 @@ from datetime import datetime
 
 from requests import get, post, HTTPError
 
-from ._utils import today, get_config, RED, YELLOW, GREEN, NC, TEMPLATE
+from .._utils import today, get_config, RED, YELLOW, GREEN, NC, TEMPLATE
 
 
+SUMMARY = ('todo', 'Create, manage and sync todo\'s with todoist')
 URL = 'https://beta.todoist.com/API/v8/{}'
 
 

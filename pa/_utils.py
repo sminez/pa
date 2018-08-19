@@ -1,5 +1,5 @@
 '''
-Utility functions and constants for aardvark
+Utility functions and constants for pa
 '''
 import os
 from datetime import datetime

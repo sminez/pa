@@ -5,9 +5,9 @@ import os
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name='advk',
+    name='pa',
     description="My presonal ADHD assistant.",
-    url="https://github.com/sminez/aard",
+    url="https://gitlab.com/sminez/pa",
     author="Innes Anderson-Morrison",
     author_email='innesdmorrison@gmail.com',
     install_requires=[],
@@ -18,14 +18,14 @@ setup(
     # tests_require=['pytest'],
     # extras_require={'test': ['pytest']},
     packages=find_packages(),
-    package_dir={'advk': 'advk'},
+    package_dir={'pa': 'pa'},
     classifiers=[
         'Programming Language :: Python :: 3',
         'Development Status :: 4 - Beta'
     ],
     entry_points={
         'console_scripts': [
-            'advk = advk.cli:main',
+            'pa = pa.cli:main',
         ]
     },
     test_suite="tests",

@@ -1,14 +1,14 @@
 '''\
-aardvark toggl - Command line toggl tracking and push to STATs
+pa toggl - Command line toggl tracking and push to STATs
 
 Manage toggl timers from the command line. (You will need to add your
 toggl api token to your config file and enable toggl to use this module.)
 
 Usage:
-  advk toggl start <project> [<details>...]
-  advk toggl stop
-  advk toggl [options]
-  advk toggl (-h | --help)
+  pa toggl start <project> [<details>...]
+  pa toggl stop
+  pa toggl [options]
+  pa toggl (-h | --help)
 
 Options:
   -s, --status                          Show the current timer status.
@@ -26,8 +26,10 @@ from datetime import datetime, date, timedelta
 import requests
 from requests.auth import HTTPBasicAuth
 
-from ._utils import today, get_config, RED, YELLOW, GREEN, NC
+from .._utils import today, get_config, RED, YELLOW, GREEN, NC
 
+
+SUMMARY = ('toggl', 'Manage toggl timers and view breakdowns')
 
 # Toggl API urls
 WORKSPACE_URL = 'https://www.toggl.com/api/v8/workspaces'

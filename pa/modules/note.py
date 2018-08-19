@@ -1,10 +1,10 @@
 '''\
-aardvark note - Command line note management and search
+pa note - Command line note management and search
 
 Usage:
-  advk note <title>
-  advk note [options]
-  advk note (-h | --help)
+  pa note <title>
+  pa note [options]
+  pa note (-h | --help)
 
 Options:
   -g <pattern>, --grep <pattern>    Grep your notes
@@ -16,7 +16,10 @@ import re
 import subprocess
 from datetime import datetime
 
-from ._utils import today, get_config, TEMPLATE, GREEN, NC
+from .._utils import today, get_config, TEMPLATE, GREEN, NC
+
+
+SUMMARY = ('note', 'Create and manage markdown note files')
 
 
 def run(args):
@@ -45,7 +48,7 @@ def list_notes(config):
     '''
     Show the contents of the notes directory
     '''
-    os.chdir(config.get('general', 'note_root'))
+    os.chdir(config.get('note', 'note_root'))
     print('{} Current notes: {}'.format(GREEN, NC))
     subprocess.run(['ls', 'notes'])
 
@@ -56,7 +59,7 @@ def grep_notes(config, pattern):
     If `ag` is enabled then prefer that over searching in python
     '''
     use_ag = config.getboolean('general', 'ag_enabled')
-    note_root = config.get('general', 'note_root')
+    note_root = config.get('note', 'note_root')
 
     for subdir in ['/daily-notes', '/notes']:
         if use_ag:
@@ -70,7 +73,7 @@ def sync(config):
     '''
     Push the local note content to the remote git repo
     '''
-    os.chdir(config.get('general', 'note_root'))
+    os.chdir(config.get('note', 'note_root'))
     print('{}Pushing notes to remote repo...{}'.format(GREEN, NC))
     subprocess.run('git add -A', shell=True)
     subprocess.run(
