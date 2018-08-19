@@ -19,7 +19,7 @@ from datetime import datetime
 from .._utils import today, get_config, TEMPLATE, GREEN, NC
 
 
-SUMMARY = ('note', 'Create and manage markdown note files')
+SUMMARY = 'Create and manage markdown note files'
 
 
 def run(args):

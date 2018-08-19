@@ -31,7 +31,7 @@ from requests import get, post, HTTPError
 from .._utils import today, get_config, RED, YELLOW, GREEN, NC, TEMPLATE
 
 
-SUMMARY = ('todo', 'Create, manage and sync todo\'s with todoist')
+SUMMARY = 'Create, manage and sync todo\'s with todoist'
 URL = 'https://beta.todoist.com/API/v8/{}'
 
 

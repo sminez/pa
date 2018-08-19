@@ -2,4 +2,4 @@
 '''
 
 
-SUMMARY = ('mail', 'Search your gmail account')
+SUMMARY = 'Search your gmail account'

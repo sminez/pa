@@ -29,7 +29,7 @@ from requests.auth import HTTPBasicAuth
 from .._utils import today, get_config, RED, YELLOW, GREEN, NC
 
 
-SUMMARY = ('toggl', 'Manage toggl timers and view breakdowns')
+SUMMARY = 'Manage toggl timers and view breakdowns'
 
 # Toggl API urls
 WORKSPACE_URL = 'https://www.toggl.com/api/v8/workspaces'

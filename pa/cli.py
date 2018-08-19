@@ -23,7 +23,7 @@ Options:
 
 Commands:
 {}
-Use 'advk <command> --help' for specific information regarding a sub command
+Use 'pa <command> --help' for specific information regarding a sub command
 '''
 import os
 from traceback import print_exc
@@ -33,7 +33,7 @@ from importlib.util import spec_from_file_location, module_from_spec
 from docopt import docopt
 
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 MOD_DIR = os.path.expanduser('~/.config/pa/user_modules')
 
 
@@ -93,18 +93,19 @@ def get_sub_commands():
     for entry in dir(built_in_modules):
         if not entry.startswith('_'):
             module = getattr(built_in_modules, entry)
-            sub_commands.append(module.SUMMARY)
-            cmd_map[module.SUMMARY[0]] = 'built-in'
+            sub_commands.append((entry, module.SUMMARY))
+            cmd_map[entry] = 'built-in'
 
     # User-defined
     for entry in os.listdir(MOD_DIR):
-        if os.path.isfile(entry) and valid_module(entry):
-            path = os.path.join(MOD_DIR, entry)
+        path = os.path.join(MOD_DIR, entry)
+        if os.path.isfile(path) and valid_module(entry):
             spec = spec_from_file_location("module", path)
             module = module_from_spec(spec)
             spec.loader.exec_module(module)
-            sub_commands.append(module.SUMMARY)
-            cmd_map[module.SUMMARY[0]] = 'user-defined'
+            cmd = entry[:-3]
+            sub_commands.append((cmd, module.SUMMARY))
+            cmd_map[cmd] = 'user-defined'
 
     # Sort by sub-command name
     sub_commands = sorted(sub_commands, key=lambda t: t[0])

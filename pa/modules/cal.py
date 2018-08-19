@@ -2,4 +2,4 @@
 '''
 
 
-SUMMARY = ('cal', 'View and edit your google calendar')
+SUMMARY = 'View and edit your google calendar'
