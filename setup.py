@@ -1,22 +1,28 @@
 from setuptools import setup, find_packages
 import os
 
+
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='pa',
+    version='0.2.1',
     description="My presonal ADHD assistant.",
     url="https://gitlab.com/sminez/pa",
     author="Innes Anderson-Morrison",
     author_email='innesdmorrison@gmail.com',
-    install_requires=[],
-    # setup_requires=[
-    #     'pytest-cov',
-    #     'pytest-runner',
-    # ],
-    # tests_require=['pytest'],
-    # extras_require={'test': ['pytest']},
+    install_requires=[
+        'docopt',
+        'peewee',
+        'requests',
+    ],
+    setup_requires=[
+        'pytest-cov',
+        'pytest-runner',
+    ],
+    tests_require=['pytest'],
+    extras_require={'test': ['pytest']},
     packages=find_packages(),
     package_dir={'pa': 'pa'},
     classifiers=[

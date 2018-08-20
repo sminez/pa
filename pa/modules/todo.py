@@ -24,15 +24,90 @@ import sys
 import json
 import uuid
 import subprocess
-from datetime import datetime
+from datetime import datetime, date
 
+import peewee
 from requests import get, post, HTTPError
 
-from .._utils import today, get_config, RED, YELLOW, GREEN, NC, TEMPLATE
+from .._utils import PaModel, today, get_config, print_red, print_yellow, \
+    print_green, TEMPLATE
 
 
 SUMMARY = 'Create, manage and sync todo\'s with todoist'
 URL = 'https://beta.todoist.com/API/v8/{}'
+
+
+# TODO: add tables for labels and projects
+# >>> This will seed the db with all current todoist tasks
+# from pa.modules.todo import Todo, query
+# from pa._utils import get_config
+# import requests
+# import peewee
+# config = get_config()
+# tasks = query(config, requests.get, 'tasks')
+# tasks = [Todo.format_json_for_insert(t) for t in tasks]
+# Todo.insert_many(tasks).execute()
+class Todo(PaModel):
+    '''
+    A TODO with associated metadata.
+
+    This is intended to map nearly 1-1 with the JSON response from the
+    todoist API.
+    '''
+    id = peewee.IntegerField(unique=True)
+    project_id = peewee.IntegerField(null=True)
+    completed = peewee.BooleanField(default=False)
+    content = peewee.TextField()
+    label_ids_str = peewee.CharField(null=True)
+    due_date = peewee.DateField(null=True)
+    due_time = peewee.DateTimeField(null=True)
+    url = peewee.CharField(null=True)
+    priority = peewee.IntegerField()
+
+    @property
+    def label_ids(self):
+        '''
+        A nasty hack but this lets us store all of the label ids in
+        a single field rather than creating an entire label_id table
+        to allow for todos to have more than one field.
+        '''
+        return self.label_ids_str.split(',')
+
+    @staticmethod
+    def format_json_for_insert(data):
+        '''
+        Format the JSON response from todoist for the creation of Todo
+        instances.
+        The resulting dictionary can be used either as:
+        >>> t = Todo(*data)  # Single todo
+        >>> t.save()
+
+        Or:
+        >>> Todo.insert_many([...]).execute() # array of todos
+
+        NOTE: data should be a dictionary not a raw string
+        '''
+        data['label_ids_str'] = ','.join(str(i) for i in data['label_ids'])
+
+        due = data.get('due')
+        if due:
+            d = due.get('date')
+            dt = due.get('datetime')
+            if dt:
+                due['due_date'] = date(*map(int, d.split('-')))
+            if dt:
+                due['due_time'] = datetime.strptime(
+                    dt + due['timezone'].replace(':', ''),
+                    '%Y-%m-%dT%H:%M:%SZUTC%z'
+                )
+            del(data['due'])
+
+        del(data['order'])
+        del(data['indent'])
+        del(data['label_ids'])
+        del(data['comment_count'])
+
+        return data
 
 
 def run(args):
@@ -52,7 +127,7 @@ def run(args):
 
     elif args['--sync']:
         if not config.getboolean('todoist', 'enabled'):
-            print('{}Todoist functionality is not enabled{}'.format(RED, NC))
+            print_red('Todoist functionality is not enabled')
             exit()
 
         sync(todo_file, config)
@@ -70,7 +145,7 @@ def query(config, req_func, endpoint, params={}, data=None, headers=None):
     '''
     Query the Todoist REST API using an api token
     '''
-    if not config['TODOIST_TOKEN']:
+    if not config.get('todoist', 'api_token'):
         raise ValueError('No Todoist API token given in config')
 
     params['token'] = config.get('todoist', 'api_token')
@@ -143,9 +218,7 @@ def ensure_default_todo_file(config):
                     lines[n] = line[:3] + '-' + line[4:]
 
             if open_todos:
-                print(
-                    '{}Moving existing TODOs to today: {}'.format(
-                        YELLOW, NC))
+                print_yellow('Moving existing TODOs to today:')
                 for line, todo in open_todos:
                     print(todo[6:])
 
@@ -262,11 +335,11 @@ def sync(todo_file, config):
         if ID in IDs:
             try:
                 close_task(config, ID)
-                print('{}Closed "{}"{}'.format(YELLOW, task, NC))
+                print_yellow('Closed "{}"'.format(task))
                 closed.append(ID)
             except HTTPError:
-                print('{}Unable to close task: {}{}'.format(RED, ID, NC),
-                      file=sys.stderr)
+                print_red('Unable to close task: {}'.format(ID),
+                          file=sys.stderr)
 
     for n, ID, task in local_open:
         if ID not in IDs:
@@ -278,10 +351,10 @@ def sync(todo_file, config):
         try:
             ID = new_task(config, task)
             lines[n] = '- [ ] ({}) '.format(ID) + lines[n][6:]
-            print('{}Added "{}" to Todoist{}'.format(GREEN, task, NC))
+            print_green('Added "{}" to Todoist'.format(task))
         except HTTPError:
             print(
-                '{}Unable to add task to Todoist: {}{}'.format(RED, task, NC),
+                'Unable to add task to Todoist: {}'.format(task),
                 file=sys.stderr)
 
     # Add new tasks from Todoist
@@ -292,7 +365,7 @@ def sync(todo_file, config):
                     break
             else:
                 lines.append('- [ ] ({}) {}\n'.format(ID, task))
-                print('{}Adding "{}" from Todoist{}'.format(GREEN, task, NC))
+                print_green('Adding "{}" from Todoist'.format(task))
 
     # Update the quicknote file
     with open(todo_file, 'w') as f:

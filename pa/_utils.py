@@ -5,6 +5,12 @@ import os
 from datetime import datetime
 from configparser import ConfigParser
 
+import peewee
+
+
+# Location of the pa sqlite database
+DB_PATH = os.path.expanduser('~/.config/pa/pa.db')
+DB = peewee.SqliteDatabase(DB_PATH)
 
 RED = '\033[0;31m'
 GREEN = '\033[0;32m'
@@ -43,10 +49,19 @@ DEFAULT_CONFIG = {
 }
 
 
-def get_config(path='~/.aard.cfg'):
+class PaModel(peewee.Model):
     '''
-    Read user config from the config dotfile and return as a dictionary.
-    The config file is found at `~/.aard.cfg` and is a standard .ini file.
+    Base Class for pa DB models. This should be inherited from for all
+    database models.
+    '''
+    class Meta:
+        database = DB
+
+
+def get_config(path='~/.config/pa/pa.cfg'):
+    '''
+    Read user config from the config dotfile and return as a dictionary. The
+    config file is found at `~/.config/pa/pa.cfg` and is a standard .ini file.
 
     The ConfigParser object returned by this function supports:
         get(section, key) -> String
@@ -63,7 +78,7 @@ def get_config(path='~/.aard.cfg'):
     return config
 
 
-def write_default_config_file(path='~/.aard.cfg'):
+def write_default_config_file(path='~/.config/pa/pa.cfg'):
     '''
     Write out the default config to `path` in ini format.
     '''
@@ -83,3 +98,18 @@ def today():
     '''
     td = datetime.now()
     return '{}/{}/{}'.format(td.month, td.day, td.year)
+
+
+def print_red(s):
+    '''Helper to give coloured output.'''
+    print('{}{}{}'.format(RED, s, NC))
+
+
+def print_yellow(s):
+    '''Helper to give coloured output.'''
+    print('{}{}{}'.format(YELLOW, s, NC))
+
+
+def print_green(s):
+    '''Helper to give coloured output.'''
+    print('{}{}{}'.format(GREEN, s, NC))
