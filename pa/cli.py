@@ -13,14 +13,14 @@
  '-^--^---'--^---^-^--^--^---'--^---^-^-^-==-^--^---^-'
 
 Usage:
-  pa init
   pa <command> [<args>...]
   pa (-h | --help)
-  pa --version
+  pa (-v | --version)
+  pa init
 
 Options:
-  -h, --help    Display this message and exit
-  --version     Display the current version of this program
+  -h, --help        Display this message and exit
+  -v, --version     Display the current version of this program
 
 Commands:
 {}
@@ -33,6 +33,8 @@ from importlib.util import spec_from_file_location, module_from_spec
 
 import peewee
 from docopt import docopt
+
+from ._utils import get_config
 
 
 # Ensure that we have the config directory before importing from _utils as
@@ -48,7 +50,7 @@ if not os.path.isdir(CONFIG_ROOT):
 from ._utils import PaModel, print_green, print_yellow, print_red  # noqa
 
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 
 def main(argv=None):
@@ -65,22 +67,16 @@ def main(argv=None):
     if args['init']:
         init()
         exit()
+    elif args['<command>'].startswith('_comp'):
+        # private helper functions for zsh completions
+        _completion_helper(args['<command>'], args['<args>'])
+        exit()
 
     command = args['<command>']
     argv = [command] + args['<args>']
 
     try:
-        if cmd_map[command] == 'built-in':
-            module = import_module('.modules.' + command, package='pa')
-        elif cmd_map[command] == 'user-defined':
-            path = os.path.join(MOD_DIR, command + '.py')
-            spec = spec_from_file_location("module", path)
-            module = module_from_spec(spec)
-            spec.loader.exec_module(module)
-        else:
-            # We populate the cmd_map so these should be the only two values
-            raise RuntimeError('Should never reach here!')
-
+        module = cmd_map[command]
         args = docopt(module.__doc__, argv=argv)
         module.run(args)
     except ImportError:
@@ -112,7 +108,7 @@ def get_sub_commands():
         if not entry.startswith('_'):
             module = getattr(built_in_modules, entry)
             sub_commands.append((entry, module.SUMMARY))
-            cmd_map[entry] = 'built-in'
+            cmd_map[entry] = module
 
     # User-defined
     for entry in os.listdir(MOD_DIR):
@@ -123,7 +119,7 @@ def get_sub_commands():
             spec.loader.exec_module(module)
             cmd = entry[:-3]
             sub_commands.append((cmd, module.SUMMARY))
-            cmd_map[cmd] = 'user-defined'
+            cmd_map[cmd] = module
 
     # Sort by sub-command name
     sub_commands = sorted(sub_commands, key=lambda t: t[0])
@@ -188,3 +184,22 @@ def db_init():
             module = module_from_spec(spec)
             spec.loader.exec_module(module)
             init_tables(module)
+
+
+def _completion_helper(cmd, args):
+    '''
+    Output helper text for the _pa zsh completion file to use.
+    '''
+    sub_commands, cmd_map = get_sub_commands()
+
+    if cmd == '_comp_sub_commands':
+        # output zsh format completion descriptions
+        comps = []
+        for cmd, summary in sub_commands:
+            comps.append('{}:{}'.format(cmd, summary))
+        print('\n'.join(comps))
+
+    elif cmd == '_comp_note_root':
+        # Display the user's note root directory
+        config = get_config()
+        print(config.get('note', 'note_root'))

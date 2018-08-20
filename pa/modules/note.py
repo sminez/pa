@@ -41,7 +41,7 @@ def run(args):
             exit()
 
         # Start a new note
-        create_note(config, title)
+        create_or_open_note(config, title)
 
 
 def list_notes(config):
@@ -82,7 +82,7 @@ def sync(config):
     subprocess.run('git push', shell=True)
 
 
-def create_note(config, title):
+def create_or_open_note(config, title):
     '''
     Start a new note file, opening it in the editor
     '''
@@ -97,7 +97,10 @@ def create_note(config, title):
     if not os.path.isdir(note_dir):
         os.mkdir(note_dir)
 
-    note_file = '{}/notes/{}.md'.format(root, title)
+    if title.endswith('.md'):
+        note_file = '{}/notes/{}'.format(root, title)
+    else:
+        note_file = '{}/notes/{}.md'.format(root, title)
 
     editor = config.get('general', 'editor')
 

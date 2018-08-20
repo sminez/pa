@@ -14,8 +14,8 @@ Options:
   -s, --status                          Show the current timer status.
   -b <period>, --breakdown <period>     Display a breakdown of the time spent
                                         on each tracked project for the given
-                                        period. Periods are: day, week, month
-                                        or year. [default: week]
+                                        period. Periods are: [d]ay, [w]eek,
+                                        [m]onth or [y]ear.
 '''
 #  -u, --update-stats                    Update the SEI-Y STATs system with
 #                                        hours worked so far this week on SEI
@@ -26,7 +26,7 @@ from datetime import datetime, date, timedelta
 import requests
 from requests.auth import HTTPBasicAuth
 
-from .._utils import today, get_config, RED, YELLOW, GREEN, NC
+from .._utils import get_config, print_red
 
 
 SUMMARY = 'Manage toggl timers and view breakdowns'
@@ -43,7 +43,7 @@ def run(args):
     config = get_config()
 
     if not config.getboolean('toggl', 'enabled'):
-        print('{}Toggl functionality is not enabled{}'.format(RED, NC))
+        print_red('Toggl functionality is not enabled')
         exit()
 
     if args['start']:
@@ -57,6 +57,9 @@ def run(args):
     elif args['--breakdown']:
         period = args['--breakdown']
         get_breakdown(config, period)
+    else:
+        print(__doc__)
+        exit()
 
 
 def start_timer(config, project, details):
