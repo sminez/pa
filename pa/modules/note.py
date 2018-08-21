@@ -16,7 +16,7 @@ import re
 import subprocess
 from datetime import datetime
 
-from .._utils import today, get_config, TEMPLATE, GREEN, NC
+from ..utils import today, get_config, TEMPLATE, GREEN, NC
 
 
 SUMMARY = 'Create and manage markdown note files'
@@ -48,7 +48,7 @@ def list_notes(config):
     '''
     Show the contents of the notes directory
     '''
-    os.chdir(config.get('note', 'note_root'))
+    os.chdir(config['note']['note_root'])
     print('{} Current notes: {}'.format(GREEN, NC))
     subprocess.run(['ls', 'notes'])
 
@@ -58,8 +58,8 @@ def grep_notes(config, pattern):
     Grep through the notes and daily_notes for a given pattern.
     If `ag` is enabled then prefer that over searching in python
     '''
-    use_ag = config.getboolean('general', 'ag_enabled')
-    note_root = config.get('note', 'note_root')
+    use_ag = config['general']['ag_enabled']
+    note_root = config['note']['note_root']
 
     for subdir in ['/daily-notes', '/notes']:
         if use_ag:
@@ -73,7 +73,7 @@ def sync(config):
     '''
     Push the local note content to the remote git repo
     '''
-    os.chdir(config.get('note', 'note_root'))
+    os.chdir(config['note']['note_root'])
     print('{}Pushing notes to remote repo...{}'.format(GREEN, NC))
     subprocess.run('git add -A', shell=True)
     subprocess.run(
@@ -90,7 +90,7 @@ def create_or_open_note(config, title):
     y, m, d = today.year, today.month, today.day
     date = '{}/{}/{}'.format(y, m, d)
 
-    root = config.get('note', 'note_root')
+    root = config['note']['note_root']
 
     # Make sure we have a notes directory
     note_dir = os.path.join(root, 'notes')
@@ -102,7 +102,7 @@ def create_or_open_note(config, title):
     else:
         note_file = '{}/notes/{}.md'.format(root, title)
 
-    editor = config.get('general', 'editor')
+    editor = config['general']['editor']
 
     if not os.path.exists(note_file):
         with open(note_file, 'w') as f:

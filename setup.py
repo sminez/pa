@@ -1,5 +1,5 @@
-from setuptools import setup, find_packages
 import os
+from setuptools import setup, find_packages
 
 
 # allow setup.py to be run from any path
@@ -9,13 +9,14 @@ setup(
     name='pa',
     version='0.2.1',
     description="My presonal ADHD assistant.",
-    url="https://gitlab.com/sminez/pa",
+    url="https://github.com/sminez/pa",
     author="Innes Anderson-Morrison",
     author_email='innesdmorrison@gmail.com',
     install_requires=[
         'docopt',
         'peewee',
         'requests',
+        'toml',
     ],
     setup_requires=[
         'pytest-cov',

@@ -26,7 +26,7 @@ from datetime import datetime, date, timedelta
 import requests
 from requests.auth import HTTPBasicAuth
 
-from .._utils import get_config, print_red
+from ..utils import get_config, print_red
 
 
 SUMMARY = 'Manage toggl timers and view breakdowns'
@@ -42,8 +42,8 @@ def run(args):
     '''
     config = get_config()
 
-    if not config.getboolean('toggl', 'enabled'):
-        print_red('Toggl functionality is not enabled')
+    if not config['toggl']['enabled']:
+        print_red('Toggl functionality is not enabled. See config file.')
         exit()
 
     if args['start']:
@@ -95,7 +95,7 @@ def _make_request(config, url, params={}):
     '''
     Make an API request
     '''
-    api_token = config.get('toggl', 'api_token')
+    api_token = config['toggl']['api_token']
     headers = {'content-type': 'application/json'}
     full_params = {'user_agent': 'aardvark'}
     full_params.update(params)

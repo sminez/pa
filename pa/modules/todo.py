@@ -29,7 +29,7 @@ from datetime import datetime, date
 import peewee
 from requests import get, post, HTTPError
 
-from .._utils import PaModel, today, get_config, print_red, print_yellow, \
+from ..utils import PaModel, today, get_config, print_red, print_yellow, \
     print_green, TEMPLATE
 
 
@@ -40,7 +40,7 @@ URL = 'https://beta.todoist.com/API/v8/{}'
 # TODO: add tables for labels and projects
 # >>> This will seed the db with all current todoist tasks
 # from pa.modules.todo import Todo, query
-# from pa._utils import get_config
+# from pa.utils import get_config
 # import requests
 # import peewee
 # config = get_config()
@@ -148,7 +148,7 @@ def query(config, req_func, endpoint, params={}, data=None, headers=None):
     if not config.get('todoist', 'api_token'):
         raise ValueError('No Todoist API token given in config')
 
-    params['token'] = config.get('todoist', 'api_token')
+    params['token'] = config['todoist']['api_token']
     resp = req_func(
         URL.format(endpoint),
         params=params,
@@ -170,7 +170,7 @@ def ensure_default_todo_file(config):
     '''
     Conditionally migrate over any notes from yesterday and open a new file
     '''
-    root = config.get('note', 'note_root')
+    root = config['note']['note_root']
     today = datetime.today()
     y, m, d = today.year, today.month, today.day
     date = '{}/{}/{}'.format(y, m, d)
@@ -189,7 +189,7 @@ def ensure_default_todo_file(config):
             os.mkdir(root + '/daily-notes')
             os.chdir(root + '/daily-notes')
 
-        if config.getboolean('general', 'ag_enabled'):
+        if config['general']['ag_enabled']:
             res = subprocess.run(
                 r'ag -l --nocolor "\[[ o+]\]"',
                 shell=True,
@@ -246,7 +246,7 @@ def list_todo(config):
     '''
     List the current todos
     '''
-    os.chdir(config.get('note', 'note_root') + '/daily-notes')
+    os.chdir(config['note']['note_root'] + '/daily-notes')
     subprocess.run(
         r'ag "\[[ o+]\]" ',
         shell=True,
@@ -257,7 +257,7 @@ def quick_open(todo_file, config):
     '''
     Open today's TODO file in the user specified editor
     '''
-    subprocess.run([config.get('general', 'editor'), todo_file])
+    subprocess.run([config['general']['editor'], todo_file])
 
 
 def today_and_overdue(config):
@@ -377,7 +377,7 @@ def _get_open_todos(config):
     Find all open todos
     '''
     pattern = re.compile('\[[ o+]\]')
-    base = config.get('note', 'note_root') + '/daily-notes'
+    base = config['note']['note_root'] + '/daily-notes'
 
     note_files = []
 

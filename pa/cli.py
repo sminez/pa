@@ -34,10 +34,10 @@ from importlib.util import spec_from_file_location, module_from_spec
 import peewee
 from docopt import docopt
 
-from ._utils import get_config
+from .utils import get_config
 
 
-# Ensure that we have the config directory before importing from _utils as
+# Ensure that we have the config directory before importing from utils as
 # that will try to look for the DB.
 CONFIG_ROOT = os.path.expanduser('~/.config/pa')
 MOD_DIR = os.path.expanduser('~/.config/pa/user_modules')
@@ -47,7 +47,7 @@ if not os.path.isdir(CONFIG_ROOT):
     os.makedirs(MOD_DIR)
 
 
-from ._utils import PaModel, print_green, print_yellow, print_red  # noqa
+from .utils import PaModel, print_green, print_yellow, print_red  # noqa
 
 
 __version__ = '0.2.2'
@@ -202,4 +202,4 @@ def _completion_helper(cmd, args):
     elif cmd == '_comp_note_root':
         # Display the user's note root directory
         config = get_config()
-        print(config.get('note', 'note_root'))
+        print(config['note']['note_root'])

@@ -34,3 +34,10 @@ SQLite database. Docs for ongoing development work can be found
 Local file storage (text files) is currently in the `~/notes` directory due to
 maintaining compatibility with my original `notes` script. This may change in
 the future.
+
+### APIs
+- [toggl](https://github.com/toggl/toggl_api_docs)
+- [todist](https://developer.todoist.com/sync/v7/)
+- [google](https://console.developers.google.com/apis/credentials?authuser=0&project=pa---adhd-assist-1534778218277)
+  Google APIs seem needlessly complicated to get set up...!
+  [lib](https://developers.google.com/api-client-library/python/)
