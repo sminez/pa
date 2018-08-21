@@ -14,6 +14,7 @@ setup(
     author_email='innesdmorrison@gmail.com',
     install_requires=[
         'docopt',
+        'keyring',
         'peewee',
         'requests',
         'toml',

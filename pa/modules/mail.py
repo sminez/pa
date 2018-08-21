@@ -7,10 +7,13 @@ unless the `--full` flag is passed.
 For more specific querying, use one of the options listed below. Note that
 queries may optionally use boolean AND/OR clauses if needed.
 
+pa mail uses the 'keyring' module for storing your passwords in an OS keychain.
+
 Usage:
+  pa mail accounts
+  pa mail setpass <account>
   pa mail <query> [--full] [--max=<n>] [--account=<name>]
   pa mail [options] [--full] [--max=<n>] [--account=<name>]
-  pa mail accounts
   pa mail (-h | --help)
 
 Options:
@@ -25,11 +28,14 @@ import email
 import getpass
 import imaplib
 
+import keyring
+
 from ..utils import get_config, print_red, print_yellow, print_green
 
 
-SUMMARY = 'Query your email inboxes via IMAP'
+SUMMARY = 'Quick querying of your email via IMAP'
 MSG_SUMMARY_LEN = 400
+KEYRING_NAMESPACE = 'pa-mail'
 
 
 def run(args):
@@ -43,9 +49,13 @@ def run(args):
     count = int(count) if count else count
 
     if args['accounts']:
-        print_green('Configured accounts are:')
-        for account in accounts:
-            print(account)
+        show_accounts(accounts)
+        exit()
+    elif args['setpass']:
+        account = args['<account>']
+        print_yellow('Enter password for {}:'.format(account))
+        keyring.set_password(KEYRING_NAMESPACE, account, getpass.getpass())
+        print_yellow('Password stored.')
         exit()
 
     try:
@@ -58,28 +68,44 @@ def run(args):
 
     if account:
         # Only run for the selected account
-        details = accounts[account]
-        process_account(account, details, method, query, full, count)
-        exit()
+        details = accounts.get(account)
+        if details is None:
+            print_yellow('"{}" is not a configured account\n'.format(account))
+            show_accounts(accounts)
+            exit()
 
-    # Otherwise run for all configured accounts
-    for account, details in accounts.items():
         process_account(account, details, method, query, full, count)
+    else:
+        # Otherwise run for all configured accounts
+        for account, details in accounts.items():
+            process_account(account, details, method, query, full, count)
 
 
 def process_account(account, details, method, query, full, count):
     '''
     Run the selected query for a given account
     '''
-    m = MailBox(
-        username=details['username'],
-        password=getpass.getpass(),
-        server=details['server']
-    )
+    print_green('[{}]'.format(account))
+    password = keyring.get_password(KEYRING_NAMESPACE, account)
+    if password is None:
+        print_yellow(
+            '>>> Run "pa setpass {}" to store in the keychain'.format(account)
+        )
+        print_yellow('\nPlease enter your password:')
+        password = getpass.getpass(),
+
+    try:
+        m = MailBox(
+            username=details['username'],
+            password=password,
+            server=details['server']
+        )
+    except Exception as e:
+        print_red('ERROR: {}'.format(e.args[0].decode()))
+        exit()
 
     try:
         results = m._query(method, (query,), full=full)
-        print_green('[{}]'.format(account))
         for i, json_msg in enumerate(results):
             if i == count:
                 break
@@ -93,7 +119,8 @@ def process_account(account, details, method, query, full, count):
             print('\n', '-' * 80, '\n')
 
     except Exception as e:
-        print_red('Error querying mailbox: {}'.format(e))
+        print_red('Error querying mailbox:')
+        print(e)
 
 
 class MailBox:
@@ -149,13 +176,22 @@ def get_imap_key(args):
     elif args['--on']:
         return 'ON', args['--on']
     elif args['--new']:
-        return 'NEW', ''
+        return 'NEW', None
 
     if args['<query>'] is None:
         # Catch in run and show help
         raise ValueError()
 
     return 'TEXT', args['<query>']
+
+
+def show_accounts(accounts):
+    '''
+    Print out the configured account names and usernames
+    '''
+    print_green('Configured accounts are:')
+    for account, details in accounts.items():
+        print('  {}: {}'.format(account, details['username']))
 
 
 def get_body(msg, full=False):

@@ -6,6 +6,42 @@ flow in terms of managing web services via their APIs (if available), local
 content (using git) and reminding me of the things that I have most likely
 forgotten.
 
+### Config
+`pa` is configured via the `pa.toml` file (located at `~/.config/pa/pa.toml`. An
+example configuration is shown below:
+```toml
+[general]
+ag_enabled=true
+editor='vim'
+
+[note]
+note_root='~/notes'
+
+[todoist]
+enabled=true
+api_token='supersecretapitoken1'
+
+[toggl]
+enabled=true
+api_token='supersecretapitoken2'
+
+[mail]
+enabled=true
+oath2=false
+
+[mail.accounts]
+  [mail.accounts.personal]
+  server='imap.gmail.com'
+  username='myusername'
+
+  [mail.accounts.work]
+  server='imap.gmail.com'
+  username='myusername@work.com'
+
+[cal]
+enabled=false
+```
+
 
 ### Modular
 `pa` has a modular design that should allow me to add new sub-commands and
@@ -29,15 +65,32 @@ means you don't need to constantly re-install `pa`.
 SQLite database. Docs for ongoing development work can be found
 [here](http://docs.peewee-orm.com/en/latest/peewee/).
 
+### keyring
+`pa` uses [keyring](https://github.com/jaraco/keyring) for local storage of
+secure details in the OS keyring.
+
 
 ### File Storage
 Local file storage (text files) is currently in the `~/notes` directory due to
 maintaining compatibility with my original `notes` script. This may change in
 the future.
 
+
+### mail - less secure apps with google
+At present, `pa` uses IMAP with standard username/password sign-in in order to
+query your email inbox. In order to get this to work with gmail you need to
+first enable IMAP through the gmail settings then follow the instructions
+[here](https://support.google.com/accounts/answer/6010255?hl=en) to allow access
+without Oath2.
+Please make sure you are happy with the implications of this and that you have
+read the code in `pa/modules/mail.py` and that you are happy with using this
+kind of access to your account.
+If you are not, then wait for Oath2 support to be implemented and disable the
+mail module / do not add any account details into your config file.
+
+
 ### APIs
 - [toggl](https://github.com/toggl/toggl_api_docs)
 - [todist](https://developer.todoist.com/sync/v7/)
 - [google](https://console.developers.google.com/apis/credentials?authuser=0&project=pa---adhd-assist-1534778218277)
-  Google APIs seem needlessly complicated to get set up...!
   [lib](https://developers.google.com/api-client-library/python/)
