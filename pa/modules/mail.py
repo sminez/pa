@@ -10,7 +10,7 @@ queries may optionally use boolean AND/OR clauses if needed.
 pa mail uses the 'keyring' module for storing your passwords in an OS keychain.
 
 Usage:
-  pa mail accounts
+  pa mail list
   pa mail setpass <account>
   pa mail <query> [--full] [--max=<n>] [--account=<name>]
   pa mail [options] [--full] [--max=<n>] [--account=<name>]
@@ -48,7 +48,7 @@ def run(args):
     count = args['--max']
     count = int(count) if count else count
 
-    if args['accounts']:
+    if args['list']:
         show_accounts(accounts)
         exit()
     elif args['setpass']:

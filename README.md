@@ -44,7 +44,14 @@ oath2=false
   username='myusername@work.com'
 
 [cal]
-enabled=false
+enabled=true
+
+[cal.calendars]
+  [cal.calendars.work]
+  url='https://calendar.google.com/calendar/ical/...'
+
+  [cal.calendars.personal]
+  url='https://calendar.google.com/calendar/ical/...'
 ```
 
 Sub-commands _should_ provide details on their own config options (but at
@@ -109,8 +116,6 @@ The following APIs are being used as part of `pa`:
   Cocoon) but the current system isn't great.
   - Auto-parsing todos out of the daily file and adding to the db for bonus
   points!
-- [ ] Work out how to query google calendar details
-  - Ideally without having to register an app with google...
 - [ ] Decide on a format / storage for HOWTO files.
   - Store in the DB?
   - Keep as plain-text notes?

@@ -7,15 +7,17 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='pa',
-    version='0.3.3',
+    version='0.3.4',
     description="My presonal ADHD assistant.",
     url="https://gitlab.com/sminez/pa",
     author="Innes Anderson-Morrison",
     author_email='innesdmorrison@gmail.com',
     install_requires=[
         'docopt',
+        'icalendar',
         'keyring',
         'peewee',
+        'pytz',
         'requests',
         'toml',
     ],
