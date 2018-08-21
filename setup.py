@@ -7,9 +7,9 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='pa',
-    version='0.2.1',
+    version='0.3.3',
     description="My presonal ADHD assistant.",
-    url="https://github.com/sminez/pa",
+    url="https://gitlab.com/sminez/pa",
     author="Innes Anderson-Morrison",
     author_email='innesdmorrison@gmail.com',
     install_requires=[

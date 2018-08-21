@@ -14,11 +14,11 @@
 
 Usage:
   pa <command> [<args>...]
-  pa (-h | --help)
-  pa (-v | --version)
+  pa [options]
   pa init
 
 Options:
+  -s, --sync        Run the sync scripts for all sub-commands
   -h, --help        Display this message and exit
   -v, --version     Display the current version of this program
 
@@ -31,26 +31,13 @@ from traceback import print_exc
 from importlib import import_module
 from importlib.util import spec_from_file_location, module_from_spec
 
-import peewee
 from docopt import docopt
 
-from .utils import get_config
+from .db import db_init
+from .utils import get_config, init_config_dir, print_red, MOD_DIR
 
 
-# Ensure that we have the config directory before importing from utils as
-# that will try to look for the DB.
-CONFIG_ROOT = os.path.expanduser('~/.config/pa')
-MOD_DIR = os.path.expanduser('~/.config/pa/user_modules')
-
-if not os.path.isdir(CONFIG_ROOT):
-    os.makedirs(CONFIG_ROOT)
-    os.makedirs(MOD_DIR)
-
-
-from .utils import PaModel, print_green, print_yellow, print_red  # noqa
-
-
-__version__ = '0.2.2'
+__version__ = '0.3.3'
 
 
 def main(argv=None):
@@ -65,13 +52,28 @@ def main(argv=None):
     )
 
     if args['init']:
-        init()
+        init_config_dir()
+        db_init(MOD_DIR)
         exit()
-    elif args['<command>'].startswith('_comp'):
-        # private helper functions for zsh completions
-        _completion_helper(args['<command>'], args['<args>'])
+    elif args['--sync']:
+        # Sync everything
+        # NOTE: sync must take only the config as an argument
+        config = get_config()
+        for mod in cmd_map.values():
+            if 'sync' in dir(mod):
+                mod.sync(config)
+        exit()
+    elif args['<command>'] is not None:
+        if args['<command>'].startswith('_comp'):
+            # private helper functions for zsh completions
+            _completion_helper(args['<command>'], args['<args>'])
+            exit()
+    else:
+        # <command> is None and no flags set
+        print(__doc__.format(cmd_str))
         exit()
 
+    # We were passed a command so try to run it
     command = args['<command>']
     argv = [command] + args['<args>']
 
@@ -146,44 +148,6 @@ def format_sub_command_section(sub_commands):
         cmd_str += '  {}{}{}\n'.format(cmd, padding, summary)
 
     return cmd_str
-
-
-def init():
-    db_init()
-
-
-def db_init():
-    '''
-    Initialise the DB
-    '''
-    def init_tables(module):
-        for entry in dir(module):
-            mod = getattr(module, entry)
-
-            if isinstance(mod, type) and issubclass(mod, PaModel):
-                if entry == 'PaModel':
-                    # Don't create the base class
-                    continue
-                try:
-                    mod.create_table()
-                    print_green('Created table: {}'.format(entry))
-                except peewee.OperationalError:
-                    print_yellow('Table already exists: {}'.format(entry))
-
-    # Built-in
-    built_in_modules = import_module('.modules', package='pa')
-    for entry in dir(built_in_modules):
-        module = getattr(built_in_modules, entry)
-        init_tables(module)
-
-    # User-defined
-    for entry in os.listdir(MOD_DIR):
-        path = os.path.join(MOD_DIR, entry)
-        if os.path.isfile(path) and path.endswith('.py'):
-            spec = spec_from_file_location("module", path)
-            module = module_from_spec(spec)
-            spec.loader.exec_module(module)
-            init_tables(module)
 
 
 def _completion_helper(cmd, args):

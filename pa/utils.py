@@ -5,12 +5,11 @@ import os
 from datetime import datetime
 
 import toml
-import peewee
 
 
-# Location of the pa sqlite database
-DB_PATH = os.path.expanduser('~/.config/pa/pa.db')
-DB = peewee.SqliteDatabase(DB_PATH)
+CONFIG_ROOT = os.path.expanduser('~/.config/pa')
+MOD_DIR = os.path.expanduser('~/.config/pa/user_modules')
+DEFAULT_CONFIG_FILE = os.path.expanduser('~/.config/pa/pa.toml')
 
 RED = '\033[0;31m'
 GREEN = '\033[0;32m'
@@ -51,31 +50,46 @@ DEFAULT_CONFIG = {
 }
 
 
-class PaModel(peewee.Model):
-    '''
-    Base Class for pa DB models. This should be inherited from for all
-    database models.
-    '''
-    class Meta:
-        database = DB
-
-
-def get_config(path='~/.config/pa/pa.toml'):
+def get_config(path=DEFAULT_CONFIG_FILE):
     '''
     Read user config from the config dotfile and return as a dictionary. The
     config file is found at `~/.config/pa/pa.toml` and is a standard toml file.
+
+    NOTE: This will create the config directory if it does not already exist.
     '''
-    config_path = os.path.expanduser(path)
     config = DEFAULT_CONFIG
+
+    if not os.path.isdir(CONFIG_ROOT):
+        # Do a full init of the config dir in this case. This means that we
+        # don't attempt a partial init if the user has created the directory
+        # themselves.
+        init_config_dir(CONFIG_ROOT)
+
+    config_path = os.path.expanduser(path)
     from_file = toml.load(config_path)
     config.update(from_file)
 
     return config
 
 
-def write_default_config_file(path='~/.config/pa/pa.cfg'):
+def init_config_dir(config_dir=CONFIG_ROOT):
     '''
-    Write out the default config to `path` in ini format.
+    Create all of the default config directories and files.
+    '''
+    # Create the base directory
+    os.makedirs(config_dir)
+    # Create the user_modules directory
+    user_dir = os.path.join(config_dir, 'user_modules')
+    os.makedirs(user_dir)
+    # Touch the __init__.py file to mark it as a python module
+    open(os.path.join(user_dir, '__init__.py'), 'a').close()
+    # Write out the default config file
+    write_default_config_file()
+
+
+def write_default_config_file(path=DEFAULT_CONFIG_FILE):
+    '''
+    Write out the default config to `path` in toml format.
     '''
     config_path = os.path.expanduser(path)
     toml.dump(DEFAULT_CONFIG, config_path)

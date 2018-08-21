@@ -29,7 +29,8 @@ from datetime import datetime, date
 import peewee
 from requests import get, post, HTTPError
 
-from ..utils import PaModel, today, get_config, print_red, print_yellow, \
+from ..db import PaModel
+from ..utils import today, get_config, print_red, print_yellow, \
     print_green, TEMPLATE
 
 
@@ -38,15 +39,6 @@ URL = 'https://beta.todoist.com/API/v8/{}'
 
 
 # TODO: add tables for labels and projects
-# >>> This will seed the db with all current todoist tasks
-# from pa.modules.todo import Todo, query
-# from pa.utils import get_config
-# import requests
-# import peewee
-# config = get_config()
-# tasks = query(config, requests.get, 'tasks')
-# tasks = [Todo.format_json_for_insert(t) for t in tasks]
-# Todo.insert_many(tasks).execute()
 class Todo(PaModel):
     '''
     A TODO with associated metadata.
@@ -109,6 +101,16 @@ class Todo(PaModel):
 
         return data
 
+    @classmethod
+    def fetch_all_open(cls):
+        '''
+        Pull all currently open tasks and load them into the database.
+        '''
+        config = get_config()
+        tasks = query(config, get, 'tasks')
+        tasks = [cls.format_json_for_insert(t) for t in tasks]
+        cls.insert_many(tasks).execute()
+
 
 def run(args):
     '''
@@ -126,7 +128,7 @@ def run(args):
         quick_open(todo_file, config)
 
     elif args['--sync']:
-        if not config.getboolean('todoist', 'enabled'):
+        if not config['todoist']['enabled']:
             print_red('Todoist functionality is not enabled')
             exit()
 
@@ -290,11 +292,12 @@ def new_task(config, content, priority=1):
     return resp['id']
 
 
-def sync(todo_file, config):
+def sync(config):
     '''
     Align the local todos with todoist.
     '''
-    tasks = today_and_overdue()
+    todo_file = ensure_default_todo_file(config)
+    tasks = today_and_overdue(config)
     IDs = {t[0] for t in tasks}
     new_tasks = []
     completed_tasks = []

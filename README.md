@@ -3,8 +3,13 @@ pa - An ADHD Personal Assistant
 
 `pa` is intended to be a great old pot of glue that holds together my daily work
 flow in terms of managing web services via their APIs (if available), local
-content (using git) and reminding me of the things that I have most likely
-forgotten.
+content (using git/the file system/SQLite) and reminding me of the things that I
+have most likely forgotten.
+
+Individual modules/sub-commands follow a UNIX philosophy of being responsible
+for a single thing and doing it well. `pa` itself is a horrible hydra that holds
+everything together!
+
 
 ### Config
 `pa` is configured via the `pa.toml` file (located at `~/.config/pa/pa.toml`. An
@@ -42,12 +47,8 @@ oath2=false
 enabled=false
 ```
 
-
-### Modular
-`pa` has a modular design that should allow me to add new sub-commands and
-functionality as and when I need it. Ideally, all `pa` generated content will
-live in the same directory (alongside the code?) and all API actions should work
-on a sync basis. (Determining which is correct: local vs remote TBD).
+Sub-commands _should_ provide details on their own config options (but at
+present do not...).
 
 
 ### Sub-Commands
@@ -90,7 +91,29 @@ mail module / do not add any account details into your config file.
 
 
 ### APIs
+The following APIs are being used as part of `pa`:
 - [toggl](https://github.com/toggl/toggl_api_docs)
 - [todist](https://developer.todoist.com/sync/v7/)
 - [google](https://console.developers.google.com/apis/credentials?authuser=0&project=pa---adhd-assist-1534778218277)
   [lib](https://developers.google.com/api-client-library/python/)
+
+
+### TODO
+- [ ] Implement todo database functionality
+  - This is most likely going to be a move away from the daily todo files
+  entirely and instead only storing todos in the db.
+  - Editing of ongoing todos can then be done by writing out a temp file,
+  opening in vim, reading back the file and updating the db.
+- [ ] Re-think daily notes
+  - Some sort of daily todo's / ongoing notes is useful (it helped a lot at
+  Cocoon) but the current system isn't great.
+  - Auto-parsing todos out of the daily file and adding to the db for bonus
+  points!
+- [ ] Work out how to query google calendar details
+  - Ideally without having to register an app with google...
+- [ ] Decide on a format / storage for HOWTO files.
+  - Store in the DB?
+  - Keep as plain-text notes?
+  - Ideally they should be machine readable in order to allow for automated
+  actions being run.
+- [ ] Re-read the toggl API and implement the toggl module
