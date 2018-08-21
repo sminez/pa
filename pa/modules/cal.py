@@ -1,4 +1,4 @@
-'''
+'''\
 pa cal - Check upcoming events in your calendars
 
 The default query (no arguments) is to look at all calendars for

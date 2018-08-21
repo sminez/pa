@@ -31,7 +31,7 @@ from traceback import print_exc
 from importlib import import_module
 from importlib.util import spec_from_file_location, module_from_spec
 
-from docopt import docopt
+from docopt import docopt, DocoptExit
 
 from .db import db_init
 from .utils import get_config, init_config_dir, print_red, MOD_DIR
@@ -79,7 +79,10 @@ def main(argv=None):
 
     try:
         module = cmd_map[command]
-        args = docopt(module.__doc__, argv=argv)
+        try:
+            args = docopt(module.__doc__, argv=argv)
+        except DocoptExit:
+            print(module.__doc__)
         module.run(args)
     except ImportError:
         print_red("Module '{}' failed to load".format(command))
