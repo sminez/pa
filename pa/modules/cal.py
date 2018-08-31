@@ -53,7 +53,7 @@ def run(args):
 
     if cal:
         # Only run for this calendar
-        url = config['cal']['calendars'].get(cal)
+        url = config['cal']['calendars'].get(cal)['url']
         if url is None:
             print_red('{} is not a configured calendar'.format(cal))
             show_calendars(config)

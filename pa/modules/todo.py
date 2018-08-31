@@ -132,7 +132,7 @@ def run(args):
             print_red('Todoist functionality is not enabled')
             exit()
 
-        sync(todo_file, config)
+        sync(config)
 
     else:
         todo = args['<todo>']
