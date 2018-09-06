@@ -16,7 +16,8 @@ import requests
 from pytz import utc
 from icalendar import Calendar
 
-from ..utils import get_config, print_red, print_yellow, print_green
+from ..utils import get_config, run_many_tagged, print_red, print_yellow, \
+    print_green
 
 
 SUMMARY = 'View upcoming events in your calendars'
@@ -62,9 +63,18 @@ def run(args):
         show_events(cal, url, start, end)
     else:
         # Run for all calendars
+        args = []
         for cal, data in config['cal']['calendars'].items():
             url = data['url']
-            show_events(cal, url, start, end)
+            args.append((cal, (url, start, end)))
+
+        evts = run_many_tagged(events, args)
+
+        for cal, es in evts.items():
+            print_yellow('[{}]'.format(cal))
+            for e in es:
+                print(e)
+            print()
 
 
 def show_calendars(config):
@@ -125,10 +135,16 @@ def parse_events(content, start=None, end=None):
 
     for component in calendar.walk():
         if component.name == "VEVENT":
-            evt = Event(component)
+            e_start = normalize(component.get('dtstart').dt)
+            e_end = component.get('dtend')
+            if e_end is not None:
+                e_end = normalize(e_end.dt)
+            else:
+                e_end = e_start+timedelta(days=1)
 
-            if evt.start <= end and evt.end >= start:
+            if e_start <= end and e_end >= start:
                 # Event is in range so keep it
+                evt = Event(component)
                 found.append(evt)
 
     # Sort into ascending order
