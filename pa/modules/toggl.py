@@ -20,13 +20,15 @@ Options:
 #  -u, --update-stats                    Update the SEI-Y STATs system with
 #                                        hours worked so far this week on SEI
 #                                        projects.
+import sys
+from calendar import monthcalendar
 from collections import defaultdict
 from datetime import datetime, date, timedelta
 
 import requests
 from requests.auth import HTTPBasicAuth
 
-from ..utils import get_config, print_red
+from ..utils import get_config, print_red, print_yellow
 
 
 SUMMARY = 'Manage toggl timers and view breakdowns'
@@ -34,6 +36,12 @@ SUMMARY = 'Manage toggl timers and view breakdowns'
 # Toggl API urls
 WORKSPACE_URL = 'https://www.toggl.com/api/v8/workspaces'
 DATA_URL = 'https://toggl.com/reports/api/v2/details'
+
+DAYS = [
+    'Monday', 'Tuesday', 'Wednesday',
+    'Thursday', 'Friday',
+    'Saturday', 'Sunday'
+]
 
 
 def run(args):
@@ -88,7 +96,85 @@ def get_breakdown(config, period):
     Display a breakdown of the time spent on each project being tracked
     within the user's toggl account.
     '''
-    pass
+    if period in ['d', 'day']:
+        period = 'Day'
+        start = date.today()
+        end = start + timedelta(days=1)
+    elif period in ['w', 'week']:
+        period = 'Week'
+        start = _monday()
+        end = start + timedelta(days=6)
+    elif period in ['m', 'month']:
+        period = 'Month'
+        start = date.today().replace(day=1)
+        end = start.replace(month=start.month+1)
+    # TODO: work out how to get a full year's worth of data as
+    #       the API pages
+    # elif period in ['y', 'year']:
+    #     period = 'Year'
+    #     _year = date.today().year
+    #     start = date(_year, 1, 1)
+    #     end = date.today()
+    else:
+        print_red('Invalid period')
+        sys.exit(42)
+
+    if period == 'week':
+        monday = _monday()
+        days = {monday + timedelta(days=ix): DAYS[ix] for ix in range(7)}
+
+    data = get_toggl_data(config, start, end)
+
+    grand_total = 0
+
+    for k, v in data.items():
+        print_yellow(k)
+        total = 0
+
+        for d, hrs in sorted(v.items(), key=lambda t: t[0]):
+            mins = int((hrs - int(hrs)) * 60)
+            if period == 'week':
+                print(f'{days[d]}: {int(hrs)} hrs {mins} mins')
+            total += hrs
+
+        grand_total += total
+        total_mins = int((total - int(total)) * 60)
+
+        print('--')
+        print(f'Total: {int(total)} hrs {total_mins} mins')
+        print()
+
+    grand_total_mins = int((grand_total - int(grand_total)) * 60)
+    print(f'\n{period} Total: {int(grand_total)} hrs {grand_total_mins} mins')
+
+
+def _monday():
+    '''Get the date of monday this week'''
+    today = date.today()
+    month = today.month
+    year = today.year
+    cal = monthcalendar(year, month)
+
+    # Find the date of Monday this week so we can determine which of the
+    # three weekly menus we need to look at.
+    for week in cal:
+        if today.day in week:
+            monday = week[0]
+
+            # This week started in the previous month so we need to
+            # look at that calendar instead.
+            if monday == 0:
+                if today.month > 1:
+                    cal = monthcalendar(year, today.month-1)
+                    month -= 1
+                else:
+                    cal = monthcalendar(year-1, 12)
+                    month = 12
+                    year -= 1
+
+                monday = cal[-1][0]
+
+            return date(year, month, monday)
 
 
 def _make_request(config, url, params={}):
