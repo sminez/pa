@@ -5,3 +5,4 @@ from . import mail
 from . import note
 from . import todo
 from . import toggl
+from . import spotify

@@ -37,7 +37,7 @@ from .db import db_init
 from .utils import get_config, init_config_dir, print_red, MOD_DIR
 
 
-__version__ = '0.3.4'
+__version__ = '0.3.5'
 
 
 def main(argv=None):
